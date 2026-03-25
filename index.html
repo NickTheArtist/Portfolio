@@ -23,19 +23,43 @@
         }
         html { scroll-behavior: smooth; }
 
-        /* --- INTRO SCREEN --- */
+        /* --- CINEMATIC INTRO SCREEN --- */
         #intro-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100vh;
-            background-color: #000; z-index: 99999; display: flex; 
-            justify-content: center; align-items: center; flex-direction: column;
-            transition: opacity 0.8s ease; cursor: pointer;
+            z-index: 99999; display: flex; justify-content: center; align-items: center; 
+            cursor: pointer; overflow: hidden;
         }
+        
+        /* The Black Gates */
+        .intro-gate {
+            position: absolute; left: 0; width: 100%; height: 50.5vh;
+            background-color: #000; transition: transform 1.2s cubic-bezier(0.8, 0, 0.2, 1) 0.3s;
+            z-index: 1;
+        }
+        .top-gate { top: 0; border-bottom: 1px solid rgba(212, 175, 55, 0.2); }
+        .bottom-gate { bottom: 0; }
+
+        /* The Gold Flash */
+        .intro-flash {
+            position: absolute; top: 50%; left: 50%; width: 0; height: 2px;
+            background: var(--accent-bright); box-shadow: 0 0 20px var(--accent-primary);
+            transform: translate(-50%, -50%); z-index: 3; transition: width 0.4s ease-out, opacity 0.4s ease;
+        }
+
+        /* The Content (Logo/Text) */
+        .intro-content { position: absolute; z-index: 4; text-align: center; transition: opacity 0.3s ease; }
         .intro-logo {
             font-size: 2.5rem; font-weight: 900; color: var(--accent-primary);
             letter-spacing: 10px; text-transform: uppercase; animation: introPulse 2s infinite;
         }
         .intro-text { color: var(--text-muted); font-size: 0.8rem; letter-spacing: 4px; margin-top: 20px; text-transform: uppercase; }
         @keyframes introPulse { 0% { opacity: 0.5; text-shadow: 0 0 10px rgba(212,175,55,0.2); } 50% { opacity: 1; text-shadow: 0 0 30px rgba(212,175,55,0.8); } 100% { opacity: 0.5; text-shadow: 0 0 10px rgba(212,175,55,0.2); } }
+
+        /* Open Animations */
+        #intro-screen.open .intro-content { opacity: 0; pointer-events: none; }
+        #intro-screen.open .intro-flash { width: 100vw; opacity: 0; transition: width 0.5s ease-out, opacity 0.3s 0.2s; }
+        #intro-screen.open .top-gate { transform: translateY(-100%); }
+        #intro-screen.open .bottom-gate { transform: translateY(100%); }
 
         /* --- BACKGROUND SMOKE CANVAS --- */
         #smokeCanvas {
@@ -52,15 +76,15 @@
         .cursor-outline { width: 30px; height: 30px; border: 1px solid rgba(212, 175, 55, 0.6); transition: width 0.15s, height 0.15s, background-color 0.15s; }
         .cursor-hover .cursor-outline { width: 50px; height: 50px; background-color: rgba(212, 175, 55, 0.05); border-color: var(--accent-bright); }
 
-        /* --- ANIMATIONS --- */
+        /* --- MAIN ANIMATIONS --- */
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes goldPulse { 0% { text-shadow: 0 0 0px rgba(212, 175, 55, 0); } 50% { text-shadow: 0 0 20px rgba(212, 175, 55, 0.6); } 100% { text-shadow: 0 0 0px rgba(212, 175, 55, 0); } }
 
-        /* The reveal wrapper controls the slide-up ONLY, never fighting the hover */
         .reveal { opacity: 0; transform: translateY(40px); transition: opacity 0.8s ease, transform 0.8s ease; display: block; height: 100%; }
         .reveal.active { opacity: 1; transform: translateY(0); }
         
-        .site-content { opacity: 0; visibility: hidden; transition: opacity 0.8s ease; }
+        /* The main site waits 0.3s to fade in while the gates open */
+        .site-content { opacity: 0; visibility: hidden; transition: opacity 1s ease 0.3s; }
         .site-content.visible { opacity: 1; visibility: visible; }
 
         /* Navigation */
@@ -96,7 +120,6 @@
         #portfolio { padding: 100px 5%; max-width: 1400px; margin: 0 auto; position: relative; z-index: 2; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 30px; margin-top: 50px; }
         
-        /* The inner card handles the tilt exclusively */
         .item {
             background: var(--surface-color); border: 1px solid rgba(255,255,255,0.05); border-radius: 6px; overflow: hidden;
             transition: transform 0.1s linear, border-color 0.4s, box-shadow 0.4s; position: relative; height: 100%;
@@ -152,14 +175,20 @@
 </head>
 <body>
 
-    <audio id="enterSfx" src="https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3" preload="auto"></audio>
+    <audio id="whooshSfx" src="https://assets.mixkit.co/active_storage/sfx/2954/2954-preview.mp3" preload="auto"></audio>
+    <audio id="scrollSfx" src="https://assets.mixkit.co/active_storage/sfx/2570/2570-preview.mp3" preload="auto"></audio>
     <audio id="hoverSfx" src="https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3" preload="auto"></audio>
     <audio id="openSfx" src="https://assets.mixkit.co/active_storage/sfx/3005/3005-preview.mp3" preload="auto"></audio>
     <audio id="closeSfx" src="https://assets.mixkit.co/active_storage/sfx/2569/2569-preview.mp3" preload="auto"></audio>
 
     <div id="intro-screen" class="hover-target" onclick="enterSite()">
-        <div class="intro-logo">NTA.</div>
-        <div class="intro-text">Click Anywhere to Enter</div>
+        <div class="intro-gate top-gate"></div>
+        <div class="intro-gate bottom-gate"></div>
+        <div class="intro-flash"></div>
+        <div class="intro-content">
+            <div class="intro-logo">NTA.</div>
+            <div class="intro-text">Click Anywhere to Enter</div>
+        </div>
     </div>
 
     <div class="site-content" id="main-content">
@@ -209,31 +238,36 @@
     <div class="cursor-outline" id="cursorOutline"></div>
 
     <script>
-        // --- 0. BULLETPROOF INTRO FUNCTION ---
+        // --- 0. CINEMATIC INTRO FUNCTION ---
+        let siteEntered = false; // Flag to enable scroll sounds ONLY after entering
+
         function enterSite() {
+            siteEntered = true;
             const intro = document.getElementById('intro-screen');
             const main = document.getElementById('main-content');
             const nav = document.getElementById('navbar');
-            const sfx = document.getElementById('enterSfx');
+            const whoosh = document.getElementById('whooshSfx');
 
-            intro.style.opacity = '0';
-            intro.style.pointerEvents = 'none';
+            // Trigger the opening animation
+            intro.classList.add('open');
             main.classList.add('visible');
+
+            // Play the massive Whoosh sound
+            try {
+                if(whoosh) {
+                    whoosh.volume = 0.7;
+                    whoosh.play().catch(e => console.log("Audio skipped by browser"));
+                }
+            } catch(e) {}
             
+            // Delete the intro screen from flow after animation finishes (1.5s)
             setTimeout(() => {
                 intro.style.display = 'none';
                 if(nav) nav.classList.add('nav-visible');
                 if(document.getElementById('h-tag')) document.getElementById('h-tag').classList.add('animate');
                 if(document.getElementById('h-title')) document.getElementById('h-title').classList.add('animate');
                 if(document.getElementById('h-desc')) document.getElementById('h-desc').classList.add('animate');
-            }, 300);
-
-            try {
-                if(sfx) {
-                    sfx.volume = 0.6;
-                    sfx.play().catch(e => console.log("Audio skipped by browser"));
-                }
-            } catch(e) {}
+            }, 1000);
         }
 
         // --- 1. PORTFOLIO GRID GENERATION ---
@@ -246,7 +280,6 @@
             { name: "Arima", file: "header6.jpg" }
         ];
 
-        // The reveal wrapper is now separated from the item box. No more lag.
         const grid = document.getElementById('portfolioGrid');
         grid.innerHTML = myImages.map((img, index) => `
             <div class="reveal" style="transition-delay: ${index * 0.1}s">
@@ -290,26 +323,50 @@
             });
         });
 
-        // --- 4. SAFE AUDIO & LIGHTBOX ---
+        // --- 4. SAFE AUDIO, LIGHTBOX & SCROLL TICK ---
         const openSfx = document.getElementById('openSfx');
         const closeSfx = document.getElementById('closeSfx');
         const hoverSfx = document.getElementById('hoverSfx');
+        const scrollSfx = document.getElementById('scrollSfx');
         const lightbox = document.getElementById('lightbox');
 
         function openImg(src) {
-            try {
-                if(openSfx) { openSfx.currentTime = 0; openSfx.volume = 0.5; openSfx.play().catch(e=>{}); }
-            } catch(e){}
+            try { if(openSfx) { openSfx.currentTime = 0; openSfx.volume = 0.5; openSfx.play().catch(e=>{}); } } catch(e){}
             document.getElementById('lbImg').src = src;
             lightbox.classList.add('show');
         }
 
         function closeImg() {
-            try {
-                if(closeSfx) { closeSfx.currentTime = 0; closeSfx.volume = 0.4; closeSfx.play().catch(e=>{}); }
-            } catch(e){}
+            try { if(closeSfx) { closeSfx.currentTime = 0; closeSfx.volume = 0.4; closeSfx.play().catch(e=>{}); } } catch(e){}
             lightbox.classList.remove('show');
         }
+
+        // Subconscious Scroll Tick Logic
+        let lastScrollTop = 0;
+        let tickAllowed = true;
+        
+        window.addEventListener('scroll', () => {
+            if (!siteEntered) return; // Prevent sound before clicking enter
+            
+            let st = window.pageYOffset || document.documentElement.scrollTop;
+            
+            // Trigger a soft "tick" every 150 pixels scrolled
+            if (Math.abs(st - lastScrollTop) > 150) { 
+                if (tickAllowed) {
+                    try {
+                        if(scrollSfx) {
+                            scrollSfx.currentTime = 0;
+                            scrollSfx.volume = 0.03; // VERY quiet, subliminal volume
+                            scrollSfx.play().catch(e=>{});
+                        }
+                    } catch(e){}
+                    
+                    tickAllowed = false;
+                    setTimeout(() => tickAllowed = true, 100); // Throttle to prevent machine-gun sound
+                    lastScrollTop = st;
+                }
+            }
+        });
 
         // --- 5. CUSTOM CURSOR ---
         const cursorDot = document.getElementById('cursorDot');
@@ -325,9 +382,7 @@
         document.querySelectorAll('.hover-target').forEach(el => {
             el.addEventListener('mouseenter', () => {
                 document.body.classList.add('cursor-hover');
-                try {
-                    if(hoverSfx) { hoverSfx.currentTime = 0; hoverSfx.volume = 0.1; hoverSfx.play().catch(e=>{}); }
-                } catch(e){}
+                try { if(hoverSfx) { hoverSfx.currentTime = 0; hoverSfx.volume = 0.08; hoverSfx.play().catch(e=>{}); } } catch(e){}
             });
             el.addEventListener('mouseleave', () => document.body.classList.remove('cursor-hover'));
         });
