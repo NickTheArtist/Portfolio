@@ -12,7 +12,7 @@
             --border-color: rgba(255, 255, 255, 0.06);
             --text-main: #f8f8f8;
             --text-muted: #888888;
-            --accent-primary: #CFA960; /* Refined Champagne Gold */
+            --accent-primary: #CFA960; 
             --accent-bright: #E8CA8B;
             --transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1); 
         }
@@ -22,7 +22,7 @@
         body { 
             background-color: var(--bg-color);
             color: var(--text-main); line-height: 1.6; overflow-x: hidden; 
-            -webkit-font-smoothing: antialiased; /* Makes text look sharper on Mac/iOS */
+            -webkit-font-smoothing: antialiased; 
         }
         html { scroll-behavior: smooth; }
 
@@ -73,31 +73,43 @@
         /* --- BACKGROUND SMOKE CANVAS --- */
         #smokeCanvas {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: -1; pointer-events: none; opacity: 0.25; /* Lowered opacity for a cleaner look */
+            z-index: -1; pointer-events: none; opacity: 0.25; 
         }
 
-        /* --- CUSTOM CURSOR --- */
+        /* --- HARDWARE ACCELERATED CUSTOM CURSOR --- */
         .cursor-dot, .cursor-outline {
-            position: fixed; top: 0; left: 0; transform: translate(-50%, -50%);
+            position: fixed; top: 0; left: 0; 
             border-radius: 50%; z-index: 99998; pointer-events: none;
+            will-change: transform; /* Promotes to GPU */
         }
         .cursor-dot { width: 4px; height: 4px; background-color: var(--accent-bright); }
-        .cursor-outline { width: 36px; height: 36px; border: 1px solid rgba(255, 255, 255, 0.2); transition: width 0.2s, height 0.2s, background-color 0.2s, border-color 0.2s; }
+        .cursor-outline { 
+            width: 36px; height: 36px; border: 1px solid rgba(255, 255, 255, 0.2); 
+            transition: width 0.2s, height 0.2s, background-color 0.2s, border-color 0.2s; 
+        }
         .cursor-hover .cursor-outline { width: 60px; height: 60px; background-color: rgba(255, 255, 255, 0.03); border-color: var(--accent-primary); }
 
-        /* --- DYNAMIC SCROLL ANIMATIONS --- */
+        /* --- DYNAMIC SPRING SCROLL ANIMATIONS --- */
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); filter: blur(4px); } to { opacity: 1; transform: translateY(0); filter: blur(0); } }
 
+        /* UPGRADED: Dramatic 3D Spring Pop-Out */
         .reveal { 
             opacity: 0; 
-            transform: translateY(60px); 
-            filter: blur(5px); 
-            transition: opacity 1.2s cubic-bezier(0.16, 1, 0.3, 1), transform 1.2s cubic-bezier(0.16, 1, 0.3, 1), filter 1.2s cubic-bezier(0.16, 1, 0.3, 1); 
+            transform: translateY(120px) scale(0.85) rotateX(15deg); /* Starts pushed down, shrunk, and tilted back */
+            transform-origin: center bottom;
+            filter: blur(12px); 
+            /* The 'transform' now uses a custom spring bounce curve */
+            transition: opacity 1s cubic-bezier(0.16, 1, 0.3, 1), transform 1.2s cubic-bezier(0.34, 1.56, 0.64, 1), filter 1s ease; 
             display: block; 
             height: 100%; 
             will-change: transform, opacity, filter;
+            perspective: 1000px;
         }
-        .reveal.active { opacity: 1; transform: translateY(0); filter: blur(0px); }
+        .reveal.active { 
+            opacity: 1; 
+            transform: translateY(0) scale(1) rotateX(0deg); /* Snaps perfectly forward */
+            filter: blur(0px); 
+        }
 
         /* Navigation */
         nav {
@@ -140,11 +152,11 @@
         
         .item {
             background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden;
-            transition: transform 0.2s linear, border-color 0.6s, box-shadow 0.6s; position: relative; height: 100%;
+            transition: transform 0.1s linear, border-color 0.6s, box-shadow 0.6s; position: relative; height: 100%;
             transform-style: preserve-3d;
+            will-change: transform;
         }
         
-        /* Premium Image Treatment: Starts slightly dark/desaturated, illuminates on hover */
         .item img { 
             width: 100%; height: 300px; object-fit: cover; 
             transition: transform 1s cubic-bezier(0.16, 1, 0.3, 1), filter 0.8s ease; 
@@ -183,19 +195,10 @@
             transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), background 0.4s, border-color 0.4s, color 0.4s;
             position: relative; overflow: hidden;
         }
-        .btn-gold { 
-            background: var(--text-main); color: #000; border: 1px solid var(--text-main);
-        }
-        .btn-gold:hover { 
-            background: transparent; color: var(--text-main); 
-        }
-        
-        .btn-outline { 
-            background: transparent; color: var(--text-muted); border: 1px solid rgba(255,255,255,0.1); 
-        }
-        .btn-outline:hover { 
-            border-color: var(--accent-primary); color: var(--accent-primary); background: rgba(207, 169, 96, 0.03); 
-        }
+        .btn-gold { background: var(--text-main); color: #000; border: 1px solid var(--text-main); }
+        .btn-gold:hover { background: transparent; color: var(--text-main); }
+        .btn-outline { background: transparent; color: var(--text-muted); border: 1px solid rgba(255,255,255,0.1); }
+        .btn-outline:hover { border-color: var(--accent-primary); color: var(--accent-primary); background: rgba(207, 169, 96, 0.03); }
 
         /* --- DYNAMIC LIGHTBOX ZOOM --- */
         #lightbox {
@@ -290,9 +293,36 @@
     <div class="cursor-outline" id="cursorOutline"></div>
 
     <script>
-        // --- 0. CINEMATIC ZOOM INTRO FUNCTION ---
-        let siteEntered = false; 
+        // --- 1. OPTIMIZED HARDWARE CURSOR ENGINE ---
+        const cursorDot = document.getElementById('cursorDot');
+        const cursorOutline = document.getElementById('cursorOutline');
+        
+        let mouseX = window.innerWidth / 2;
+        let mouseY = window.innerHeight / 2;
+        let dotX = mouseX, dotY = mouseY;
+        let outX = mouseX, outY = mouseY;
 
+        window.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+        });
+
+        // "Lerp" function for buttery smooth trailing physics
+        function renderCursor() {
+            dotX += (mouseX - dotX) * 0.5; // Fast follow
+            dotY += (mouseY - dotY) * 0.5;
+            outX += (mouseX - outX) * 0.15; // Smooth trailing delay
+            
+            // translate3d forces the GPU to render the cursor, stopping lag
+            cursorDot.style.transform = `translate3d(${dotX}px, ${dotY}px, 0) translate(-50%, -50%)`;
+            cursorOutline.style.transform = `translate3d(${outX}px, ${outY}px, 0) translate(-50%, -50%)`;
+            
+            requestAnimationFrame(renderCursor);
+        }
+        requestAnimationFrame(renderCursor);
+
+        // --- 2. INTRO ENGINE ---
+        let siteEntered = false; 
         function enterSite() {
             siteEntered = true;
             const intro = document.getElementById('intro-screen');
@@ -318,7 +348,7 @@
             }, 1000);
         }
 
-        // --- 1. PORTFOLIO GRID GENERATION ---
+        // --- 3. GRID GENERATION ---
         const myImages = [
             { name: "Shinra", file: "header1.jpg" },
             { name: "Aizen", file: "header2.jpg" },
@@ -330,7 +360,7 @@
 
         const grid = document.getElementById('portfolioGrid');
         grid.innerHTML = myImages.map((img, index) => `
-            <div class="reveal" style="transition-delay: ${index * 0.08}s">
+            <div class="reveal" style="transition-delay: ${index * 0.05}s">
                 <div class="item hover-target" onclick="openImg('${img.file}')">
                     <img src="${img.file}" onerror="this.src='https://via.placeholder.com/600x400?text=Image+Not+Found'">
                     <div class="info">
@@ -341,25 +371,31 @@
             </div>
         `).join('');
 
-        // --- 2. PROFESSIONAL 3D TILT EFFECT ---
-        // Mathematically reduced the tilt angle for a heavier, premium feel
+        // --- 4. THROTTLED 3D TILT ---
+        let tiltTicking = false;
         document.querySelectorAll('.item').forEach(item => {
             item.addEventListener('mousemove', e => {
-                let rect = item.getBoundingClientRect();
-                let x = e.clientX - rect.left;
-                let y = e.clientY - rect.top;
-                
-                let rotateX = ((y - rect.height / 2) / (rect.height / 2)) * -4; // Reduced from 10 to 4
-                let rotateY = ((x - rect.width / 2) / (rect.width / 2)) * 4;  // Reduced from 10 to 4
-                
-                item.style.transform = `perspective(1000px) scale(1.02) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+                if (!tiltTicking) {
+                    requestAnimationFrame(() => {
+                        let rect = item.getBoundingClientRect();
+                        let x = e.clientX - rect.left;
+                        let y = e.clientY - rect.top;
+                        
+                        let rotateX = ((y - rect.height / 2) / (rect.height / 2)) * -4; 
+                        let rotateY = ((x - rect.width / 2) / (rect.width / 2)) * 4;  
+                        
+                        item.style.transform = `perspective(1000px) scale(1.02) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+                        tiltTicking = false;
+                    });
+                    tiltTicking = true;
+                }
             });
             item.addEventListener('mouseleave', () => {
                 item.style.transform = `perspective(1000px) scale(1) rotateX(0deg) rotateY(0deg)`;
             });
         });
 
-        // --- 3. MAGNETIC BUTTONS ---
+        // --- 5. MAGNETIC BUTTONS ---
         document.querySelectorAll('.magnetic-btn').forEach(btn => {
             btn.addEventListener('mousemove', function(e) {
                 const position = btn.getBoundingClientRect();
@@ -372,7 +408,7 @@
             });
         });
 
-        // --- 4. SAFE AUDIO, LIGHTBOX & SCROLL THUD ---
+        // --- 6. AUDIO & UI ---
         const openSfx = document.getElementById('openSfx');
         const closeSfx = document.getElementById('closeSfx');
         const hoverSfx = document.getElementById('hoverSfx');
@@ -382,23 +418,12 @@
         function openImg(src) {
             try { if(openSfx) { openSfx.currentTime = 0; openSfx.volume = 0.5; openSfx.play().catch(e=>{}); } } catch(e){}
             document.getElementById('lbImg').src = src;
-            
-            setTimeout(() => {
-                lightbox.classList.add('show');
-            }, 10);
+            setTimeout(() => { lightbox.classList.add('show'); }, 10);
         }
 
         function closeImg() {
             if (!lightbox.classList.contains('show')) return; 
-            
-            try { 
-                if(closeSfx) { 
-                    closeSfx.currentTime = 0; 
-                    closeSfx.volume = 0.4; 
-                    closeSfx.play().catch(e=>{}); 
-                } 
-            } catch(e){}
-            
+            try { if(closeSfx) { closeSfx.currentTime = 0; closeSfx.volume = 0.4; closeSfx.play().catch(e=>{}); } } catch(e){}
             lightbox.classList.remove('show');
         }
 
@@ -407,34 +432,15 @@
         
         window.addEventListener('scroll', () => {
             if (!siteEntered) return; 
-            
             let st = window.pageYOffset || document.documentElement.scrollTop;
-            
             if (Math.abs(st - lastScrollTop) > 150) { 
                 if (tickAllowed) {
-                    try {
-                        if(scrollSfx) {
-                            scrollSfx.currentTime = 0;
-                            scrollSfx.volume = 0.03; // Extremely subtle
-                            scrollSfx.play().catch(e=>{});
-                        }
-                    } catch(e){}
-                    
+                    try { if(scrollSfx) { scrollSfx.currentTime = 0; scrollSfx.volume = 0.03; scrollSfx.play().catch(e=>{}); } } catch(e){}
                     tickAllowed = false;
                     setTimeout(() => tickAllowed = true, 120); 
                     lastScrollTop = st;
                 }
             }
-        });
-
-        // --- 5. CUSTOM CURSOR ---
-        const cursorDot = document.getElementById('cursorDot');
-        const cursorOutline = document.getElementById('cursorOutline');
-        
-        window.addEventListener('mousemove', (e) => {
-            cursorDot.style.left = `${e.clientX}px`;
-            cursorDot.style.top = `${e.clientY}px`;
-            cursorOutline.animate({ left: `${e.clientX}px`, top: `${e.clientY}px` }, { duration: 100, fill: "forwards" });
         });
 
         document.querySelectorAll('.hover-target').forEach(el => {
@@ -445,20 +451,31 @@
             el.addEventListener('mouseleave', () => document.body.classList.remove('cursor-hover'));
         });
 
-        // --- 6. SCROLL REVEAL OBSERVER ---
+        // --- 7. DYNAMIC SCROLL OBSERVER ---
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => { 
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('active'); 
-                }
+                if (entry.isIntersecting) { entry.target.classList.add('active'); }
             });
-        }, { threshold: 0.15 });
+        }, { threshold: 0.1 });
         document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 
-        // --- 7. AMBIENT SMOKE CANVAS ---
+        // --- 8. PRE-RENDERED CANVAS ENGINE (Massive FPS Optimization) ---
         const canvas = document.getElementById('smokeCanvas');
         const ctx = canvas.getContext('2d');
         canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+
+        // Draw the complex gradient just ONCE in memory
+        const offCanvas = document.createElement('canvas');
+        const offSize = 400; // Large enough for the biggest particle
+        offCanvas.width = offSize; offCanvas.height = offSize;
+        const oCtx = offCanvas.getContext('2d');
+        
+        const gradient = oCtx.createRadialGradient(offSize/2, offSize/2, 0, offSize/2, offSize/2, offSize/2);
+        gradient.addColorStop(0, `rgba(207, 169, 96, 1)`); // Alpha is handled dynamically later
+        gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        oCtx.fillStyle = gradient;
+        oCtx.arc(offSize/2, offSize/2, offSize/2, 0, Math.PI * 2);
+        oCtx.fill();
 
         let particles = [];
         class Particle {
@@ -478,13 +495,9 @@
                 }
             }
             draw() {
-                ctx.beginPath();
-                let gradient = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.size);
-                gradient.addColorStop(0, `rgba(207, 169, 96, ${this.alpha})`);
-                gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
-                ctx.fillStyle = gradient;
-                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-                ctx.fill();
+                // Instantly stamp the pre-rendered image instead of calculating math
+                ctx.globalAlpha = this.alpha;
+                ctx.drawImage(offCanvas, this.x - this.size, this.y - this.size, this.size * 2, this.size * 2);
             }
         }
 
@@ -493,6 +506,8 @@
         function animateSmoke() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             particles.forEach(p => { p.update(); p.draw(); });
+            // Reset global alpha after rendering layer
+            ctx.globalAlpha = 1.0; 
             requestAnimationFrame(animateSmoke);
         }
         animateSmoke();
