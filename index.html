@@ -12,7 +12,7 @@
             --text-muted: #a1a1aa;
             --accent-primary: #d4af37; /* Gold */
             --accent-bright: #fef08a;
-            --transition: all 0.4s cubic-bezier(0.2, 1, 0.3, 1);
+            --transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); /* Apple-style buttery easing */
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; cursor: none; }
@@ -23,48 +23,56 @@
         }
         html { scroll-behavior: smooth; }
 
-        /* --- CINEMATIC INTRO SCREEN --- */
+        /* --- CINEMATIC ZOOM INTRO SCREEN --- */
         #intro-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100vh;
-            z-index: 99999; display: flex; justify-content: center; align-items: center; 
+            background-color: #030303; z-index: 99999; display: flex; 
+            justify-content: center; align-items: center; flex-direction: column;
             cursor: pointer; overflow: hidden;
+            transition: background-color 0.1s ease;
         }
         
-        /* The Black Gates */
-        .intro-gate {
-            position: absolute; left: 0; width: 100%; height: 50.5vh;
-            background-color: #000; transition: transform 1.2s cubic-bezier(0.8, 0, 0.2, 1) 0.3s;
-            z-index: 1;
-        }
-        .top-gate { top: 0; border-bottom: 1px solid rgba(212, 175, 55, 0.2); }
-        .bottom-gate { bottom: 0; }
-
-        /* The Gold Flash */
-        .intro-flash {
-            position: absolute; top: 50%; left: 50%; width: 0; height: 2px;
-            background: var(--accent-bright); box-shadow: 0 0 20px var(--accent-primary);
-            transform: translate(-50%, -50%); z-index: 3; transition: width 0.4s ease-out, opacity 0.4s ease;
-        }
-
-        /* The Content (Logo/Text) */
-        .intro-content { position: absolute; z-index: 4; text-align: center; transition: opacity 0.3s ease; }
         .intro-logo {
-            font-size: 2.5rem; font-weight: 900; color: var(--accent-primary);
-            letter-spacing: 10px; text-transform: uppercase; animation: introPulse 2s infinite;
+            font-size: 3rem; font-weight: 900; color: var(--accent-primary);
+            letter-spacing: 15px; text-transform: uppercase; 
+            transition: transform 1.2s cubic-bezier(0.8, 0, 0.2, 1), opacity 0.8s ease;
+            z-index: 2;
+            transform-origin: center center;
+            margin-right: -15px; 
+            text-align: center;
         }
-        .intro-text { color: var(--text-muted); font-size: 0.8rem; letter-spacing: 4px; margin-top: 20px; text-transform: uppercase; }
-        @keyframes introPulse { 0% { opacity: 0.5; text-shadow: 0 0 10px rgba(212,175,55,0.2); } 50% { opacity: 1; text-shadow: 0 0 30px rgba(212,175,55,0.8); } 100% { opacity: 0.5; text-shadow: 0 0 10px rgba(212,175,55,0.2); } }
+        
+        .intro-text { 
+            color: var(--text-muted); font-size: 0.8rem; letter-spacing: 5px; 
+            margin-top: 20px; text-transform: uppercase; transition: opacity 0.3s ease;
+            text-align: center; margin-right: -5px;
+        }
 
-        /* Open Animations */
-        #intro-screen.open .intro-content { opacity: 0; pointer-events: none; }
-        #intro-screen.open .intro-flash { width: 100vw; opacity: 0; transition: width 0.5s ease-out, opacity 0.3s 0.2s; }
-        #intro-screen.open .top-gate { transform: translateY(-100%); }
-        #intro-screen.open .bottom-gate { transform: translateY(100%); }
+        .intro-flash {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: var(--accent-bright); opacity: 0; pointer-events: none;
+            z-index: 3; mix-blend-mode: overlay; transition: opacity 0.5s ease-out;
+        }
+
+        #intro-screen.open { background-color: transparent; pointer-events: none; transition: background-color 0.8s ease 0.2s; }
+        #intro-screen.open .intro-text { opacity: 0; }
+        #intro-screen.open .intro-logo { transform: scale(40); opacity: 0; filter: blur(10px); }
+        #intro-screen.open .intro-flash { animation: flashBang 1s ease-out forwards; }
+        
+        @keyframes flashBang { 0% { opacity: 0; } 15% { opacity: 0.8; } 100% { opacity: 0; } }
+
+        /* --- MAIN SITE SLAM REVEAL --- */
+        .site-content { 
+            opacity: 0; visibility: hidden; 
+            transform: scale(1.05); filter: blur(15px);
+            transition: opacity 1s ease, transform 1.2s cubic-bezier(0.16, 1, 0.3, 1), filter 1.2s cubic-bezier(0.16, 1, 0.3, 1); 
+        }
+        .site-content.visible { opacity: 1; visibility: visible; transform: scale(1); filter: blur(0px); }
 
         /* --- BACKGROUND SMOKE CANVAS --- */
         #smokeCanvas {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: -1; pointer-events: none; opacity: 0.6;
+            z-index: -1; pointer-events: none; opacity: 0.5;
         }
 
         /* --- CUSTOM CURSOR --- */
@@ -76,16 +84,25 @@
         .cursor-outline { width: 30px; height: 30px; border: 1px solid rgba(212, 175, 55, 0.6); transition: width 0.15s, height 0.15s, background-color 0.15s; }
         .cursor-hover .cursor-outline { width: 50px; height: 50px; background-color: rgba(212, 175, 55, 0.05); border-color: var(--accent-bright); }
 
-        /* --- MAIN ANIMATIONS --- */
+        /* --- DYNAMIC SCROLL ANIMATIONS (UPGRADED) --- */
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes goldPulse { 0% { text-shadow: 0 0 0px rgba(212, 175, 55, 0); } 50% { text-shadow: 0 0 20px rgba(212, 175, 55, 0.6); } 100% { text-shadow: 0 0 0px rgba(212, 175, 55, 0); } }
 
-        .reveal { opacity: 0; transform: translateY(40px); transition: opacity 0.8s ease, transform 0.8s ease; display: block; height: 100%; }
-        .reveal.active { opacity: 1; transform: translateY(0); }
-        
-        /* The main site waits 0.3s to fade in while the gates open */
-        .site-content { opacity: 0; visibility: hidden; transition: opacity 1s ease 0.3s; }
-        .site-content.visible { opacity: 1; visibility: visible; }
+        /* The New Cinematic Pop-Out Reveal */
+        .reveal { 
+            opacity: 0; 
+            transform: translateY(80px) scale(0.92); /* Pushed further down and slightly shrunk */
+            filter: blur(8px); /* Starts blurry for depth */
+            transition: opacity 1.2s cubic-bezier(0.16, 1, 0.3, 1), transform 1.2s cubic-bezier(0.16, 1, 0.3, 1), filter 1.2s cubic-bezier(0.16, 1, 0.3, 1); 
+            display: block; 
+            height: 100%; 
+            will-change: transform, opacity, filter;
+        }
+        .reveal.active { 
+            opacity: 1; 
+            transform: translateY(0) scale(1); /* Snaps forward perfectly */
+            filter: blur(0px); 
+        }
 
         /* Navigation */
         nav {
@@ -93,7 +110,7 @@
             backdrop-filter: blur(12px); padding: 1.2rem 5%;
             display: flex; justify-content: space-between; align-items: center;
             z-index: 1000; border-bottom: 1px solid rgba(212, 175, 55, 0.1);
-            transform: translateY(-100%); transition: transform 0.8s cubic-bezier(0.19, 1, 0.22, 1);
+            transform: translateY(-100%); transition: transform 0.8s cubic-bezier(0.19, 1, 0.22, 1) 0.5s;
         }
         nav.nav-visible { transform: translateY(0); }
         .logo { font-size: 1.6rem; font-weight: 900; color: var(--accent-primary); letter-spacing: 2px; text-decoration: none; transition: var(--transition); }
@@ -108,12 +125,12 @@
             justify-content: center; align-items: center; text-align: center;
             padding: 0 5%; position: relative;
         }
-        .hero-tag.animate { animation: fadeInUp 0.8s ease forwards; }
+        .hero-tag.animate { animation: fadeInUp 0.8s ease forwards 0.4s; }
         .hero-tag { color: var(--accent-primary); letter-spacing: 8px; text-transform: uppercase; font-weight: 800; font-size: 0.8rem; margin-bottom: 1rem; opacity: 0; }
-        h1.animate { animation: fadeInUp 1s ease 0.2s forwards; }
+        h1.animate { animation: fadeInUp 1s ease 0.6s forwards; }
         h1 { font-size: clamp(3rem, 10vw, 6rem); font-weight: 900; line-height: 1.1; margin-bottom: 1.5rem; opacity: 0; letter-spacing: -2px; }
         .gold { color: var(--accent-primary); animation: goldPulse 4s infinite; }
-        #home p.animate { animation: fadeInUp 1s ease 0.4s forwards; }
+        #home p.animate { animation: fadeInUp 1s ease 0.8s forwards; }
         #home p { max-width: 550px; color: var(--text-muted); opacity: 0; }
 
         /* Portfolio Grid */
@@ -122,7 +139,7 @@
         
         .item {
             background: var(--surface-color); border: 1px solid rgba(255,255,255,0.05); border-radius: 6px; overflow: hidden;
-            transition: transform 0.1s linear, border-color 0.4s, box-shadow 0.4s; position: relative; height: 100%;
+            transition: transform 0.15s linear, border-color 0.4s, box-shadow 0.4s; position: relative; height: 100%;
             transform-style: preserve-3d;
         }
         .item::after {
@@ -131,7 +148,7 @@
         }
         .item:hover { border-color: rgba(212, 175, 55, 0.4); z-index: 10; box-shadow: 0 30px 50px rgba(0,0,0,0.9), 0 0 20px rgba(212, 175, 55, 0.1); }
         .item:hover::after { opacity: 0.3; }
-        .item img { width: 100%; height: 260px; object-fit: cover; transition: transform 0.8s ease; }
+        .item img { width: 100%; height: 260px; object-fit: cover; transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
         .item:hover img { transform: scale(1.08); }
         
         .info { padding: 25px; position: relative; z-index: 2; pointer-events: none; transform: translateZ(30px); }
@@ -145,7 +162,7 @@
         
         .btn {
             display: block; padding: 22px; text-decoration: none; font-weight: 900; 
-            text-transform: uppercase; letter-spacing: 3px; border-radius: 4px; transition: transform 0.2s ease-out, background 0.4s, box-shadow 0.4s;
+            text-transform: uppercase; letter-spacing: 3px; border-radius: 4px; transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), background 0.4s, box-shadow 0.4s;
             position: relative; overflow: hidden;
         }
         .btn-gold { background: var(--accent-primary); color: #000; box-shadow: 0 0 15px rgba(212, 175, 55, 0.1); }
@@ -154,41 +171,46 @@
         .btn-outline { background: rgba(255,255,255,0.03); color: var(--text-main); border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(5px); }
         .btn-outline:hover { border-color: var(--accent-primary); color: var(--accent-primary); background: rgba(212, 175, 55, 0.05); letter-spacing: 5px; }
 
-        /* --- LIGHTBOX --- */
+        /* --- DYNAMIC LIGHTBOX ZOOM (UPGRADED) --- */
         #lightbox {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.95); z-index: 2000; justify-content: center; align-items: center; padding: 20px;
-            backdrop-filter: blur(20px); opacity: 0; transition: opacity 0.5s ease;
+            background: rgba(0,0,0,0.85); z-index: 2000; justify-content: center; align-items: center; padding: 20px;
+            backdrop-filter: blur(0px); /* Starts unblurred */
+            opacity: 0; transition: opacity 0.5s ease, backdrop-filter 0.5s ease;
+            perspective: 1500px; /* Required for the 3D spring effect */
         }
-        #lightbox.show { display: flex; opacity: 1; }
+        #lightbox.show { display: flex; opacity: 1; backdrop-filter: blur(25px); /* Dynamically blurs in */ }
+        
         #lightbox img { 
-            max-width: 100%; max-height: 85vh; border: 1px solid rgba(212, 175, 55, 0.5); 
-            box-shadow: 0 0 80px rgba(212, 175, 55, 0.2); 
-            transform: scale(0.8) translateY(20px); opacity: 0;
-            transition: transform 0.8s cubic-bezier(0.19, 1, 0.22, 1), opacity 0.6s ease;
-            border-radius: 4px; 
+            max-width: 100%; max-height: 85vh; border: 1px solid rgba(212, 175, 55, 0.3); 
+            box-shadow: 0 30px 100px rgba(0,0,0,1), 0 0 80px rgba(212, 175, 55, 0.15); 
+            /* Start state: Pushed back, tilted up, and transparent */
+            transform: scale(0.85) translateY(60px) rotateX(15deg); 
+            opacity: 0;
+            transform-origin: center bottom;
+            /* The 'Spring' Formula */
+            transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.5s ease;
+            border-radius: 6px; 
         }
-        #lightbox.show img { transform: scale(1) translateY(0); opacity: 1; }
+        
+        /* End state: Fully forward, flat, full size */
+        #lightbox.show img { transform: scale(1) translateY(0) rotateX(0deg); opacity: 1; }
 
         @media (max-width: 768px) { nav ul { display: none; } h1 { font-size: 3.5rem; } * { cursor: auto; } .cursor-dot, .cursor-outline, #smokeCanvas { display: none; } .item { transform: none !important; } }
     </style>
 </head>
 <body>
 
-    <audio id="whooshSfx" src="https://assets.mixkit.co/active_storage/sfx/2954/2954-preview.mp3" preload="auto"></audio>
-    <audio id="scrollSfx" src="https://assets.mixkit.co/active_storage/sfx/2570/2570-preview.mp3" preload="auto"></audio>
-    <audio id="hoverSfx" src="https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3" preload="auto"></audio>
-    <audio id="openSfx" src="https://assets.mixkit.co/active_storage/sfx/3005/3005-preview.mp3" preload="auto"></audio>
-    <audio id="closeSfx" src="https://assets.mixkit.co/active_storage/sfx/2569/2569-preview.mp3" preload="auto"></audio>
+    <audio id="impactSfx" src="WOOSH.mp3" preload="auto"></audio>
+    <audio id="scrollSfx" src="https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3" preload="auto"></audio>
+    <audio id="hoverSfx" src="https://assets.mixkit.co/active_storage/sfx/2590/2590-preview.mp3" preload="auto"></audio>
+    <audio id="openSfx" src="https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3" preload="auto"></audio>
+    <audio id="closeSfx" src="https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3" preload="auto"></audio>
 
     <div id="intro-screen" class="hover-target" onclick="enterSite()">
-        <div class="intro-gate top-gate"></div>
-        <div class="intro-gate bottom-gate"></div>
         <div class="intro-flash"></div>
-        <div class="intro-content">
-            <div class="intro-logo">NTA.</div>
-            <div class="intro-text">Click Anywhere to Enter</div>
-        </div>
+        <div class="intro-logo">NTA.</div>
+        <div class="intro-text">Click Anywhere to Enter</div>
     </div>
 
     <div class="site-content" id="main-content">
@@ -238,29 +260,26 @@
     <div class="cursor-outline" id="cursorOutline"></div>
 
     <script>
-        // --- 0. CINEMATIC INTRO FUNCTION ---
-        let siteEntered = false; // Flag to enable scroll sounds ONLY after entering
+        // --- 0. CINEMATIC ZOOM INTRO FUNCTION ---
+        let siteEntered = false; 
 
         function enterSite() {
             siteEntered = true;
             const intro = document.getElementById('intro-screen');
             const main = document.getElementById('main-content');
             const nav = document.getElementById('navbar');
-            const whoosh = document.getElementById('whooshSfx');
+            const impact = document.getElementById('impactSfx');
 
-            // Trigger the opening animation
+            // Play your local WOOSH file immediately
+            if(impact) {
+                impact.volume = 0.8;
+                impact.currentTime = 0;
+                impact.play().catch(e => console.log("Audio play failed. Make sure WOOSH.mp3 is exactly in the same folder as this HTML file.", e));
+            }
+
             intro.classList.add('open');
             main.classList.add('visible');
-
-            // Play the massive Whoosh sound
-            try {
-                if(whoosh) {
-                    whoosh.volume = 0.7;
-                    whoosh.play().catch(e => console.log("Audio skipped by browser"));
-                }
-            } catch(e) {}
             
-            // Delete the intro screen from flow after animation finishes (1.5s)
             setTimeout(() => {
                 intro.style.display = 'none';
                 if(nav) nav.classList.add('nav-visible');
@@ -293,7 +312,7 @@
             </div>
         `).join('');
 
-        // --- 2. FIXED 3D TILT EFFECT ON CARDS ---
+        // --- 2. 3D TILT EFFECT ON CARDS ---
         document.querySelectorAll('.item').forEach(item => {
             item.addEventListener('mousemove', e => {
                 let rect = item.getBoundingClientRect();
@@ -314,16 +333,16 @@
         document.querySelectorAll('.magnetic-btn').forEach(btn => {
             btn.addEventListener('mousemove', function(e) {
                 const position = btn.getBoundingClientRect();
-                const x = e.pageX - position.left - position.width / 2;
-                const y = e.pageY - position.top - position.height / 2;
-                btn.style.transform = `translate(${x * 0.2}px, ${y * 0.3}px)`;
+                const x = e.clientX - position.left - position.width / 2;
+                const y = e.clientY - position.top - position.height / 2;
+                btn.style.transform = `translate(${x * 0.3}px, ${y * 0.3}px)`;
             });
-            btn.addEventListener('mouseout', function(e) {
+            btn.addEventListener('mouseleave', function() {
                 btn.style.transform = 'translate(0px, 0px)';
             });
         });
 
-        // --- 4. SAFE AUDIO, LIGHTBOX & SCROLL TICK ---
+        // --- 4. SAFE AUDIO, LIGHTBOX & SCROLL THUD ---
         const openSfx = document.getElementById('openSfx');
         const closeSfx = document.getElementById('closeSfx');
         const hoverSfx = document.getElementById('hoverSfx');
@@ -333,36 +352,48 @@
         function openImg(src) {
             try { if(openSfx) { openSfx.currentTime = 0; openSfx.volume = 0.5; openSfx.play().catch(e=>{}); } } catch(e){}
             document.getElementById('lbImg').src = src;
-            lightbox.classList.add('show');
+            
+            // Short delay ensures the CSS registers the start state before triggering the dynamic spring
+            setTimeout(() => {
+                lightbox.classList.add('show');
+            }, 10);
         }
 
         function closeImg() {
-            try { if(closeSfx) { closeSfx.currentTime = 0; closeSfx.volume = 0.4; closeSfx.play().catch(e=>{}); } } catch(e){}
+            if (!lightbox.classList.contains('show')) return; 
+            
+            try { 
+                if(closeSfx) { 
+                    closeSfx.currentTime = 0; 
+                    closeSfx.volume = 0.4; 
+                    closeSfx.play().catch(e=>{}); 
+                } 
+            } catch(e){}
+            
             lightbox.classList.remove('show');
         }
 
-        // Subconscious Scroll Tick Logic
+        // Subconscious Scroll Thud Logic
         let lastScrollTop = 0;
         let tickAllowed = true;
         
         window.addEventListener('scroll', () => {
-            if (!siteEntered) return; // Prevent sound before clicking enter
+            if (!siteEntered) return; 
             
             let st = window.pageYOffset || document.documentElement.scrollTop;
             
-            // Trigger a soft "tick" every 150 pixels scrolled
             if (Math.abs(st - lastScrollTop) > 150) { 
                 if (tickAllowed) {
                     try {
                         if(scrollSfx) {
                             scrollSfx.currentTime = 0;
-                            scrollSfx.volume = 0.03; // VERY quiet, subliminal volume
+                            scrollSfx.volume = 0.05; 
                             scrollSfx.play().catch(e=>{});
                         }
                     } catch(e){}
                     
                     tickAllowed = false;
-                    setTimeout(() => tickAllowed = true, 100); // Throttle to prevent machine-gun sound
+                    setTimeout(() => tickAllowed = true, 120); 
                     lastScrollTop = st;
                 }
             }
@@ -378,19 +409,23 @@
             cursorOutline.animate({ left: `${e.clientX}px`, top: `${e.clientY}px` }, { duration: 100, fill: "forwards" });
         });
 
-        // Safe hover sounds
         document.querySelectorAll('.hover-target').forEach(el => {
             el.addEventListener('mouseenter', () => {
                 document.body.classList.add('cursor-hover');
-                try { if(hoverSfx) { hoverSfx.currentTime = 0; hoverSfx.volume = 0.08; hoverSfx.play().catch(e=>{}); } } catch(e){}
+                try { if(hoverSfx) { hoverSfx.currentTime = 0; hoverSfx.volume = 0.15; hoverSfx.play().catch(e=>{}); } } catch(e){}
             });
             el.addEventListener('mouseleave', () => document.body.classList.remove('cursor-hover'));
         });
 
-        // --- 6. SCROLL REVEAL ---
+        // --- 6. SCROLL REVEAL OBSERVER ---
         const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('active'); });
-        }, { threshold: 0.1 });
+            entries.forEach(entry => { 
+                // Using a slightly larger threshold so they pop securely into view
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active'); 
+                }
+            });
+        }, { threshold: 0.15 });
         document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 
         // --- 7. AMBIENT SMOKE CANVAS ---
