@@ -6,31 +6,85 @@
     <title>NTA | NickTheArtist Portfolio</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800;900&display=swap" rel="stylesheet">
     <style>
+        /* CSS Property definition enables smooth transition animation on custom color variables */
+        @property --accent-primary {
+            syntax: '<color>';
+            inherits: true;
+            initial-value: #CFA960;
+        }
+        @property --accent-bright {
+            syntax: '<color>';
+            inherits: true;
+            initial-value: #F3E5AB;
+        }
+
         :root {
             --bg-color: #050505;
             --surface-color: rgba(15, 15, 15, 0.8);
-            --border-color: rgba(255, 255, 255, 0.06);
+            --border-color: rgba(255, 255, 255, 0.08);
             --text-main: #f8f8f8;
             --text-muted: #888888;
             --accent-primary: #CFA960; 
-            --accent-bright: #E8CA8B;
-            --transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1); 
+            --accent-bright: #F3E5AB;
+            --transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1); 
+            /* Smoothly interpolate palette changes over 2.5 seconds */
+            transition: --accent-primary 2.5s ease-in-out, --accent-bright 2.5s ease-in-out;
         }
 
-        /* FAILSAFE: We removed 'cursor: none' from here so you never lose your mouse if JS fails */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
         
-        /* This class is added by JS only when it's safe to hide the real cursor */
         body.hide-cursor * { cursor: none !important; }
         
         body { 
             background-color: var(--bg-color);
             color: var(--text-main); line-height: 1.6; overflow-x: hidden; 
             -webkit-font-smoothing: antialiased; 
+            position: relative;
         }
         html { scroll-behavior: smooth; }
 
-        /* --- CINEMATIC ZOOM INTRO SCREEN --- */
+        /* REFINED SLEEK GLOW ANIMATIONS */
+        @keyframes soothingGlow {
+            0%, 100% {
+                filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.15)) drop-shadow(0 0 30px var(--accent-primary));
+                opacity: 0.92;
+            }
+            50% {
+                filter: drop-shadow(0 0 22px rgba(255, 255, 255, 0.25)) drop-shadow(0 0 45px var(--accent-bright));
+                opacity: 1;
+            }
+        }
+
+        @keyframes subtleFloatGlow {
+            0%, 100% {
+                transform: translateY(0);
+                filter: drop-shadow(0 0 15px var(--accent-primary));
+            }
+            50% {
+                transform: translateY(-4px);
+                filter: drop-shadow(0 0 30px var(--accent-bright));
+            }
+        }
+
+        @keyframes tagBreathing {
+            0%, 100% {
+                letter-spacing: 10px;
+                opacity: 0.6;
+                filter: drop-shadow(0 0 6px var(--accent-primary));
+            }
+            50% {
+                letter-spacing: 12px;
+                opacity: 0.95;
+                filter: drop-shadow(0 0 16px var(--accent-bright));
+            }
+        }
+
+        .noise-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            pointer-events: none; z-index: 99990; opacity: 0.035;
+            background: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+
         #intro-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100vh;
             background-color: #050505; z-index: 99999; display: flex; 
@@ -40,25 +94,27 @@
         }
         
         .intro-logo {
-            font-size: 2.5rem; font-weight: 900; color: var(--accent-primary);
+            font-size: 2.5rem; font-weight: 900; 
+            background: linear-gradient(135deg, #ffffff 20%, var(--accent-bright) 60%, var(--accent-primary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
             letter-spacing: 20px; text-transform: uppercase; 
             transition: transform 1.2s cubic-bezier(0.8, 0, 0.2, 1), opacity 0.8s ease;
             z-index: 2; transform-origin: center center; margin-right: -20px; 
             text-align: center;
+            animation: subtleFloatGlow 5s ease-in-out infinite;
         }
         
         .intro-text { 
             color: var(--text-muted); font-size: 0.7rem; letter-spacing: 6px; 
             margin-top: 30px; text-transform: uppercase; transition: opacity 0.3s ease;
             text-align: center; margin-right: -6px; font-weight: 400;
-            /* Added pulse animation so you know the page is loaded and waiting for a click */
-            animation: textPulse 2s infinite ease-in-out; 
+            animation: textPulse 2.5s infinite ease-in-out; 
         }
 
         @keyframes textPulse {
-            0% { opacity: 0.4; }
-            50% { opacity: 1; color: var(--accent-bright); text-shadow: 0 0 10px rgba(232,202,139,0.3); }
-            100% { opacity: 0.4; }
+            0%, 100% { opacity: 0.4; filter: none; }
+            50% { opacity: 1; color: var(--accent-bright); filter: drop-shadow(0 0 10px var(--accent-primary)); }
         }
 
         .intro-flash {
@@ -69,12 +125,11 @@
 
         #intro-screen.open { background-color: transparent; pointer-events: none; transition: background-color 0.8s ease 0.2s; }
         #intro-screen.open .intro-text { opacity: 0; animation: none; }
-        #intro-screen.open .intro-logo { transform: scale(40); opacity: 0; filter: blur(10px); }
+        #intro-screen.open .intro-logo { transform: scale(40); opacity: 0; filter: blur(10px); animation: none; }
         #intro-screen.open .intro-flash { animation: flashBang 1s ease-out forwards; }
         
         @keyframes flashBang { 0% { opacity: 0; } 15% { opacity: 0.3; } 100% { opacity: 0; } }
 
-        /* --- MAIN SITE SLAM REVEAL --- */
         .site-content { 
             opacity: 0; visibility: hidden; 
             transform: scale(1.03); filter: blur(10px);
@@ -82,111 +137,148 @@
         }
         .site-content.visible { opacity: 1; visibility: visible; transform: scale(1); filter: blur(0px); }
 
-        /* --- BACKGROUND SMOKE CANVAS --- */
         #smokeCanvas {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             z-index: -1; pointer-events: none; opacity: 0.25; 
         }
 
-        /* --- HARDWARE ACCELERATED CUSTOM CURSOR --- */
         .cursor-dot {
-            position: fixed; top: 0; left: 0;
-            width: 4px; height: 4px; background-color: var(--accent-bright);
-            border-radius: 50%; z-index: 99999; pointer-events: none;
-            will-change: transform;
-            transform: translate3d(-100px, -100px, 0); /* Start hidden */
-            display: none; /* Hidden until JS activates */
+            position: fixed; top: 0; left: 0; width: 4px; height: 4px;
+            background-color: var(--accent-bright); border-radius: 50%;
+            z-index: 99999; pointer-events: none; will-change: transform;
+            transform: translate3d(-100px, -100px, 0); display: none;
+            transition: background-color 2.5s ease;
+            box-shadow: 0 0 10px var(--accent-bright);
         }
         .cursor-outline {
-            position: fixed; top: 0; left: 0;
-            width: 36px; height: 36px; border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 50%; z-index: 99998; pointer-events: none;
-            will-change: transform, width, height, background-color, border-color;
-            transition: width 0.2s ease, height 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
-            transform: translate3d(-100px, -100px, 0);
-            display: none; /* Hidden until JS activates */
+            position: fixed; top: 0; left: 0; width: 36px; height: 36px;
+            border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 50%;
+            z-index: 99998; pointer-events: none; will-change: transform, width, height;
+            transition: width 0.2s ease, height 0.2s ease, background-color 0.2s ease, border-color 2.5s ease;
+            transform: translate3d(-100px, -100px, 0); display: none;
         }
         .cursor-hover .cursor-outline { 
             width: 60px; height: 60px; 
             background-color: rgba(255, 255, 255, 0.03); 
             border-color: var(--accent-primary); 
+            box-shadow: 0 0 15px var(--accent-primary);
         }
 
-        /* --- DYNAMIC SPRING SCROLL ANIMATIONS --- */
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); filter: blur(4px); } to { opacity: 1; transform: translateY(0); filter: blur(0); } }
 
         .reveal { 
             opacity: 0; 
-            transform: translateY(120px) scale(0.85) rotateX(15deg); 
-            transform-origin: center bottom;
-            filter: blur(12px); 
-            transition: opacity 1s cubic-bezier(0.16, 1, 0.3, 1), transform 1.2s cubic-bezier(0.34, 1.56, 0.64, 1), filter 1s ease; 
-            display: block; 
-            height: 100%; 
+            transform: translateY(100px) scale(0.9); 
+            filter: blur(10px); 
+            transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 1s cubic-bezier(0.16, 1, 0.3, 1), filter 0.8s ease; 
             will-change: transform, opacity, filter;
-            perspective: 1000px;
         }
         .reveal.active { 
             opacity: 1; 
-            transform: translateY(0) scale(1) rotateX(0deg); 
+            transform: translateY(0) scale(1); 
             filter: blur(0px); 
         }
 
-        /* Navigation */
         nav {
-            position: fixed; top: 0; width: 100%; background: rgba(5, 5, 5, 0.7);
-            backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); padding: 1.5rem 6%;
+            position: fixed; top: 0; width: 100%; background: rgba(5, 5, 5, 0.75);
+            backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); padding: 1.2rem 6%;
             display: flex; justify-content: space-between; align-items: center;
             z-index: 1000; border-bottom: 1px solid var(--border-color);
             transform: translateY(-100%); transition: transform 0.8s cubic-bezier(0.19, 1, 0.22, 1) 0.5s;
         }
         nav.nav-visible { transform: translateY(0); }
         .logo { font-size: 1.2rem; font-weight: 800; color: var(--text-main); letter-spacing: 4px; text-decoration: none; transition: var(--transition); }
-        .logo span { color: var(--accent-primary); }
-        nav ul { display: flex; list-style: none; gap: 40px; }
+        .logo span { 
+            color: var(--accent-primary); 
+            transition: color 2.5s ease;
+            display: inline-block;
+            filter: drop-shadow(0 0 8px var(--accent-primary));
+            animation: soothingGlow 4s ease-in-out infinite;
+        }
+        .nav-right { display: flex; align-items: center; gap: 30px; }
+        nav ul { display: flex; list-style: none; gap: 35px; }
         nav a { color: var(--text-muted); text-decoration: none; font-size: 0.75rem; text-transform: uppercase; font-weight: 600; letter-spacing: 2px; transition: var(--transition); }
-        nav a:hover { color: var(--text-main); transform: translateY(-2px); display: inline-block; }
+        nav a:hover { color: var(--text-main); transform: translateY(-2px); display: inline-block; filter: drop-shadow(0 0 8px rgba(255,255,255,0.4)); }
 
-        /* Hero Section */
+        .audio-btn {
+            background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-color);
+            color: var(--text-main); padding: 6px 14px; border-radius: 20px;
+            font-size: 0.75rem; cursor: pointer; display: flex; align-items: center; gap: 8px;
+            transition: var(--transition), border-color 2.5s ease; font-weight: 600; letter-spacing: 1px;
+        }
+        .audio-btn:hover { border-color: var(--accent-primary); background: rgba(255, 255, 255, 0.08); box-shadow: 0 0 12px var(--accent-primary); }
+
         #home {
             height: 100vh; display: flex; flex-direction: column; 
             justify-content: center; align-items: center; text-align: center;
             padding: 0 5%; position: relative;
         }
-        .hero-tag.animate { animation: fadeInUp 1s cubic-bezier(0.16, 1, 0.3, 1) forwards 0.3s; }
+        .hero-tag.animate { animation: fadeInUp 1s cubic-bezier(0.16, 1, 0.3, 1) forwards 0.3s, tagBreathing 6s ease-in-out infinite 1.3s; }
         .hero-tag { color: var(--text-muted); letter-spacing: 10px; text-transform: uppercase; font-weight: 600; font-size: 0.7rem; margin-bottom: 1.5rem; opacity: 0; }
         
         h1.animate { animation: fadeInUp 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards 0.5s; }
         h1 { font-size: clamp(3rem, 8vw, 6.5rem); font-weight: 900; line-height: 1; margin-bottom: 2rem; opacity: 0; letter-spacing: -2px; color: var(--text-main); }
-        .gold { color: var(--accent-primary); }
+        
+        .gold { 
+            background: linear-gradient(135deg, #ffffff 0%, var(--accent-bright) 45%, var(--accent-primary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            transition: filter 2.5s ease; 
+            display: inline-block;
+            filter: drop-shadow(0 0 25px rgba(255, 255, 255, 0.12)) drop-shadow(0 0 35px var(--accent-primary));
+            animation: soothingGlow 5s ease-in-out infinite;
+        }
         
         #home p.animate { animation: fadeInUp 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards 0.7s; }
         #home p { max-width: 500px; color: var(--text-muted); opacity: 0; font-size: 1rem; font-weight: 300; line-height: 1.8; }
 
-        /* Portfolio Grid */
         #portfolio { padding: 120px 6%; max-width: 1600px; margin: 0 auto; position: relative; z-index: 2; }
-        .section-header { margin-bottom: 60px; text-align: center; }
+        .section-header { margin-bottom: 30px; text-align: center; }
         .section-header h2 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 6px; font-weight: 800; color: var(--text-main); margin-bottom: 10px; }
         .section-header p { color: var(--text-muted); font-size: 0.8rem; letter-spacing: 1px; }
 
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 40px; }
+        .filter-bar {
+            display: flex; justify-content: center; gap: 12px; flex-wrap: wrap;
+            margin-bottom: 50px;
+        }
+        .filter-btn {
+            background: transparent; border: 1px solid var(--border-color); color: var(--text-muted);
+            padding: 8px 22px; border-radius: 30px; font-size: 0.7rem; text-transform: uppercase;
+            letter-spacing: 2px; font-weight: 600; cursor: pointer; transition: var(--transition), border-color 2.5s ease, color 2.5s ease;
+        }
+        .filter-btn:hover, .filter-btn.active {
+            border-color: var(--accent-primary); color: var(--accent-bright); background: rgba(255, 255, 255, 0.03);
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.03);
+            filter: drop-shadow(0 0 6px var(--accent-primary));
+        }
+
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 35px; }
         
         .item {
             background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden;
-            transition: transform 0.1s linear, border-color 0.6s, box-shadow 0.6s; position: relative; height: 100%;
-            transform-style: preserve-3d;
-            will-change: transform;
+            transition: transform 0.1s linear, border-color 2.5s ease, box-shadow 0.6s; position: relative; height: 100%;
+            transform-style: preserve-3d; will-change: transform; cursor: pointer;
         }
+
+        .item::before {
+            content: ''; position: absolute; inset: 0; border-radius: inherit; padding: 1px;
+            background: radial-gradient(350px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), var(--accent-primary), transparent 40%);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor; mask-composite: exclude;
+            pointer-events: none; z-index: 5; opacity: 0; transition: opacity 0.3s ease;
+        }
+        .item:hover::before { opacity: 1; }
         
         .item img { 
             width: 100%; height: 300px; object-fit: cover; 
             transition: transform 1s cubic-bezier(0.16, 1, 0.3, 1), filter 0.8s ease; 
-            filter: brightness(0.7) contrast(1.1) grayscale(20%);
+            filter: brightness(0.7) contrast(1.1) grayscale(20%); display: block;
         }
         
         .item:hover { 
-            border-color: rgba(207, 169, 96, 0.3); z-index: 10; 
-            box-shadow: 0 40px 80px rgba(0,0,0,0.8); 
+            border-color: var(--accent-primary); z-index: 10; 
+            box-shadow: 0 30px 60px rgba(0,0,0,0.9), 0 0 20px rgba(255,255,255,0.05); 
         }
         .item:hover img { 
             transform: scale(1.05); 
@@ -195,14 +287,40 @@
         
         .item::after {
             content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 60%;
-            background: linear-gradient(to top, rgba(0,0,0,0.9), transparent); opacity: 0.9; transition: var(--transition); pointer-events: none;
+            background: linear-gradient(to top, rgba(0,0,0,0.95), transparent); opacity: 0.9; transition: var(--transition); pointer-events: none;
         }
 
-        .info { position: absolute; bottom: 0; left: 0; padding: 30px; z-index: 2; pointer-events: none; transform: translateZ(20px); width: 100%; }
-        .info p { color: var(--accent-primary); font-size: 0.65rem; font-weight: 800; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 3px; }
-        .info h3 { font-size: 1.4rem; font-weight: 600; letter-spacing: 0px; color: #fff; }
+        .info { position: absolute; bottom: 0; left: 0; padding: 25px; z-index: 2; pointer-events: none; transform: translateZ(20px); width: 100%; }
+        
+        .info p { 
+            color: var(--accent-bright); 
+            font-size: 0.65rem; font-weight: 800; 
+            text-transform: uppercase; margin-bottom: 6px; letter-spacing: 3px; 
+            transition: color 2.5s ease; 
+            filter: drop-shadow(0 0 8px var(--accent-primary));
+        }
 
-        /* Contact Section */
+        /* --- FANCY TYPOGRAPHY FOR HEADER TITLES --- */
+        .info h3 { 
+            font-size: 1.4rem; 
+            font-weight: 800; 
+            letter-spacing: 0.5px; 
+            background: linear-gradient(180deg, #FFFFFF 0%, #A1A1AA 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), filter 0.4s ease;
+            display: inline-block;
+            filter: drop-shadow(0 2px 8px rgba(0,0,0,0.8));
+        }
+
+        .item:hover .info h3 {
+            background: linear-gradient(135deg, #FFFFFF 0%, var(--accent-bright) 50%, var(--accent-primary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            transform: translateX(6px);
+            filter: drop-shadow(0 0 12px var(--accent-primary));
+        }
+
         #contact { padding: 150px 5%; text-align: center; border-top: 1px solid var(--border-color); position: relative; z-index: 2; background: linear-gradient(to bottom, transparent, rgba(15,15,15,0.5)); }
         .contact-container { max-width: 500px; margin: 0 auto; }
         .contact-container h2 { font-size: 2.5rem; margin-bottom: 15px; letter-spacing: -1px; font-weight: 800; }
@@ -213,47 +331,90 @@
             display: flex; justify-content: center; align-items: center; padding: 20px; 
             text-decoration: none; font-weight: 700; font-size: 0.8rem;
             text-transform: uppercase; letter-spacing: 4px; border-radius: 4px; 
-            transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), background 0.4s, border-color 0.4s, color 0.4s;
+            transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), background 0.4s, border-color 2.5s ease, color 2.5s ease, box-shadow 0.4s ease;
             position: relative; overflow: hidden;
         }
         .btn-gold { background: var(--text-main); color: #000; border: 1px solid var(--text-main); }
-        .btn-gold:hover { background: transparent; color: var(--text-main); }
+        .btn-gold:hover { background: transparent; color: var(--text-main); filter: drop-shadow(0 0 10px rgba(255,255,255,0.4)); box-shadow: 0 0 20px rgba(255,255,255,0.1); }
         .btn-outline { background: transparent; color: var(--text-muted); border: 1px solid rgba(255,255,255,0.1); }
-        .btn-outline:hover { border-color: var(--accent-primary); color: var(--accent-primary); background: rgba(207, 169, 96, 0.03); }
+        .btn-outline:hover { border-color: var(--accent-primary); color: var(--accent-bright); background: rgba(255, 255, 255, 0.02); filter: drop-shadow(0 0 10px var(--accent-primary)); box-shadow: 0 0 20px rgba(255, 255, 255, 0.05); }
 
-        /* --- DYNAMIC LIGHTBOX ZOOM --- */
+        footer {
+            padding: 30px; text-align: center; font-size: 0.7rem; color: var(--text-muted);
+            border-top: 1px solid var(--border-color); letter-spacing: 2px; text-transform: uppercase;
+        }
+
         #lightbox {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9); z-index: 2000; justify-content: center; align-items: center; padding: 30px;
+            background: rgba(0,0,0,0.92); z-index: 2000; justify-content: center; align-items: center; padding: 20px;
             backdrop-filter: blur(0px); -webkit-backdrop-filter: blur(0px);
-            opacity: 0; transition: opacity 0.5s ease, backdrop-filter 0.5s ease;
+            opacity: 0; transition: opacity 0.4s ease, backdrop-filter 0.4s ease;
             perspective: 2000px; 
         }
         #lightbox.show { display: flex; opacity: 1; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
         
+        .lb-container {
+            position: relative; max-width: 1100px; width: 90%; display: flex;
+            flex-direction: column; align-items: center; justify-content: center;
+        }
+
         #lightbox img { 
-            max-width: 100%; max-height: 90vh; 
-            border: 1px solid rgba(255, 255, 255, 0.05); 
-            box-shadow: 0 50px 100px rgba(0,0,0,1); 
-            transform: scale(0.9) translateY(40px) rotateX(10deg); 
-            opacity: 0; transform-origin: center center;
-            transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.6s ease;
+            max-width: 100%; max-height: 75vh; object-fit: contain;
+            border: 1px solid rgba(255, 255, 255, 0.08); 
+            box-shadow: 0 40px 100px rgba(0,0,0,0.9); 
+            transform: scale(0.9) translateY(30px); 
+            opacity: 0; transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.5s ease;
             border-radius: 4px; 
         }
-        
-        #lightbox.show img { transform: scale(1) translateY(0) rotateX(0deg); opacity: 1; }
+        #lightbox.show img { transform: scale(1) translateY(0); opacity: 1; }
+
+        .lb-details {
+            margin-top: 20px; text-align: center; color: var(--text-main);
+            transform: translateY(15px); opacity: 0; transition: all 0.5s ease 0.1s;
+        }
+        #lightbox.show .lb-details { transform: translateY(0); opacity: 1; }
+
+        #lbCounter { 
+            font-size: 0.65rem; color: var(--accent-bright); letter-spacing: 3px; 
+            font-weight: 800; text-transform: uppercase; display: block; margin-bottom: 4px; 
+            transition: color 2.5s ease; 
+            filter: drop-shadow(0 0 8px var(--accent-primary));
+        }
+        #lbTitle { font-size: 1.4rem; font-weight: 700; }
+        #lbCategory { color: var(--text-muted); font-size: 0.8rem; font-weight: 300; }
+
+        .lb-close {
+            position: absolute; top: 25px; right: 35px; background: none; border: none; color: #fff;
+            font-size: 2.2rem; cursor: pointer; z-index: 2002; transition: var(--transition), color 2.5s ease; line-height: 1;
+        }
+        .lb-close:hover { color: var(--accent-bright); transform: scale(1.1); filter: drop-shadow(0 0 10px var(--accent-primary)); }
+
+        .lb-arrow {
+            position: absolute; top: 50%; transform: translateY(-50%);
+            background: rgba(255,255,255,0.04); border: 1px solid var(--border-color); color: #fff;
+            font-size: 1.5rem; width: 50px; height: 50px; border-radius: 50%;
+            display: flex; justify-content: center; align-items: center; cursor: pointer;
+            z-index: 2002; transition: var(--transition), background 2.5s ease, border-color 2.5s ease;
+        }
+        .lb-arrow:hover { background: var(--accent-primary); color: #000; border-color: var(--accent-primary); box-shadow: 0 0 20px var(--accent-primary); }
+        .lb-prev { left: 30px; }
+        .lb-next { right: 30px; }
 
         @media (max-width: 768px) { 
             nav ul { display: none; } 
-            h1 { font-size: 3.5rem; } 
-            .cursor-dot, .cursor-outline, #smokeCanvas { display: none !important; } 
+            h1 { font-size: 3.2rem; } 
+            .cursor-dot, .cursor-outline, #smokeCanvas, .noise-overlay { display: none !important; } 
             .item { transform: none !important; } 
             .grid { grid-template-columns: 1fr; }
             body.hide-cursor * { cursor: auto !important; }
+            .lb-arrow { width: 40px; height: 40px; font-size: 1.2rem; }
+            .lb-prev { left: 10px; } .lb-next { right: 10px; }
         }
     </style>
 </head>
 <body>
+
+    <div class="noise-overlay"></div>
 
     <audio id="impactSfx" src="WOOSH.mp3" preload="auto"></audio>
     <audio id="scrollSfx" src="https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3" preload="auto"></audio>
@@ -270,55 +431,182 @@
     <div class="site-content" id="main-content">
         <canvas id="smokeCanvas"></canvas>
 
-        <nav id="navbar">
-            <a href="#home" class="logo hover-target">NTA<span>.</span></a>
-            <ul>
-                <li><a href="#home" class="hover-target">Home</a></li>
-                <li><a href="#portfolio" class="hover-target">Work</a></li>
-                <li><a href="#contact" class="hover-target">Contact</a></li>
-            </ul>
-        </nav>
-
-        <section id="home">
-            <p class="hero-tag" id="h-tag">Nick The Artist</p>
-            <h1 id="h-title">Visual <br><span class="gold">Excellence</span></h1>
-            <p id="h-desc">Crafting high-tier digital graphics, headers, and banners that command attention. Your vision, perfected.</p>
-        </section>
-
-        <section id="portfolio">
-            <div class="reveal section-header">
-                <h2>Selected Works</h2>
-                <p>The Archive</p>
-            </div>
-            <div class="grid" id="portfolioGrid"></div>
-        </section>
-
-        <section id="contact">
-            <div class="contact-container reveal">
-                <h2>Ready to Start?</h2>
-                <p style="color: var(--text-muted); font-weight: 300; font-size: 0.95rem;">Available for commissions and custom design projects.</p>
-                
-                <div class="btn-group">
-                    <a href="https://guns.lol/nicktheartist" target="_blank" class="btn btn-gold hover-target magnetic-btn">View Guns.lol</a>
-                    <a href="https://discord.com/users/981743684980715580" target="_blank" class="btn btn-outline hover-target magnetic-btn">Connect via Discord</a>
+        <header>
+            <nav id="navbar">
+                <a href="#home" class="logo hover-target">NTA<span>.</span></a>
+                <div class="nav-right">
+                    <ul>
+                        <li><a href="#home" class="hover-target">Home</a></li>
+                        <li><a href="#portfolio" class="hover-target">Work</a></li>
+                        <li><a href="#contact" class="hover-target">Contact</a></li>
+                    </ul>
+                    <button class="audio-btn hover-target" id="audioToggle" onclick="toggleAudio()" aria-label="Toggle SFX Audio">
+                        <span id="audioIcon">🔊</span> <span id="audioLabel">Sound</span>
+                    </button>
                 </div>
-            </div>
-        </section>
+            </nav>
+        </header>
+
+        <main>
+            <section id="home">
+                <p class="hero-tag" id="h-tag">Nick The Artist</p>
+                <h1 id="h-title">Visual <br><span class="gold">Excellence</span></h1>
+                <p id="h-desc">Crafting high-tier digital graphics, headers, and banners that command attention. Your vision, perfected.</p>
+            </section>
+
+            <section id="portfolio">
+                <div class="reveal section-header">
+                    <h2>Selected Works</h2>
+                    <p>The Archive</p>
+                </div>
+
+                <!-- CATEGORY FILTER BUTTONS -->
+                <div class="reveal filter-bar">
+                    <button class="filter-btn active hover-target" onclick="filterGrid('all', this)">All Works</button>
+                    <button class="filter-btn hover-target" onclick="filterGrid('New Headers', this)">✨ New Headers</button>
+                    <button class="filter-btn hover-target" onclick="filterGrid('Headers & Banners', this)">Headers & Banners</button>
+                </div>
+
+                <div class="grid" id="portfolioGrid"></div>
+            </section>
+
+            <section id="contact">
+                <div class="contact-container reveal">
+                    <h2>Ready to Start?</h2>
+                    <p style="color: var(--text-muted); font-weight: 300; font-size: 0.95rem;">Available for commissions and custom design projects.</p>
+                    
+                    <div class="btn-group">
+                        <a href="https://guns.lol/nicktheartist" target="_blank" class="btn btn-gold hover-target magnetic-btn">View Guns.lol</a>
+                        <a href="https://discord.com/users/981743684980715580" target="_blank" class="btn btn-outline hover-target magnetic-btn">Connect via Discord</a>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>&copy; NTA | NickTheArtist. All Rights Reserved.</p>
+        </footer>
     </div>
 
-    <div id="lightbox" onclick="closeImg()">
-        <img id="lbImg" src="">
+    <div id="lightbox" onclick="handleLightboxClick(event)">
+        <button class="lb-close hover-target" onclick="closeImg()" aria-label="Close Lightbox">&times;</button>
+        <button class="lb-arrow lb-prev hover-target" onclick="navigateLightbox(-1, event)" aria-label="Previous Image">&#10094;</button>
+        <button class="lb-arrow lb-next hover-target" onclick="navigateLightbox(1, event)" aria-label="Next Image">&#10095;</button>
+        
+        <div class="lb-container">
+            <img id="lbImg" src="" alt="Enlarged Artwork View">
+            <div class="lb-details">
+                <span id="lbCounter">1 / 8</span>
+                <h3 id="lbTitle">Shinra</h3>
+                <p id="lbCategory">Header / Design</p>
+            </div>
+        </div>
     </div>
 
     <div class="cursor-dot" id="cursorDot"></div>
     <div class="cursor-outline" id="cursorOutline"></div>
 
     <script>
-        // SAFE BOOT: Force the browser to wait until all HTML is perfectly loaded before running ANY Javascript
+        let isMuted = localStorage.getItem('nta_muted') === 'true';
+
+        function updateAudioStateUI() {
+            const icon = document.getElementById('audioIcon');
+            const label = document.getElementById('audioLabel');
+            if(icon && label) {
+                icon.textContent = isMuted ? '🔇' : '🔊';
+                label.textContent = isMuted ? 'Muted' : 'Sound';
+            }
+        }
+
+        function toggleAudio() {
+            isMuted = !isMuted;
+            localStorage.setItem('nta_muted', isMuted);
+            updateAudioStateUI();
+        }
+
+        function safePlayAudio(audioId, volume = 0.5) {
+            if (isMuted) return;
+            const sfx = document.getElementById(audioId);
+            if (sfx) {
+                try {
+                    sfx.currentTime = 0;
+                    sfx.volume = volume;
+                    sfx.play().catch(e => {});
+                } catch(e) {}
+            }
+        }
+
+        // SLEEK & ELEGANT COLOR PALETTES
+        const colorPalettes = [
+            { primary: '#CFA960', bright: '#F3E5AB' }, // Champagne Gold
+            { primary: '#E65C84', bright: '#FFA3BA' }, // Rose Pink
+            { primary: '#38BDF8', bright: '#BAE6FD' }, // Ice Blue
+            { primary: '#A855F7', bright: '#E9D5FF' }, // Soft Lavender
+            { primary: '#34D399', bright: '#A7F3D0' }  // Mint Green
+        ];
+        let currentPaletteIndex = 0;
+
+        function cycleThemePalette() {
+            currentPaletteIndex = (currentPaletteIndex + 1) % colorPalettes.length;
+            const palette = colorPalettes[currentPaletteIndex];
+            document.documentElement.style.setProperty('--accent-primary', palette.primary);
+            document.documentElement.style.setProperty('--accent-bright', palette.bright);
+        }
+
+        // Automatically change the palette every 15 seconds
+        setInterval(cycleThemePalette, 15000);
+
+        function getAccentRGB() {
+            let colorStr = getComputedStyle(document.documentElement).getPropertyValue('--accent-primary').trim();
+            if (colorStr.startsWith('#')) {
+                let hex = colorStr.replace('#', '');
+                if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
+                let r = parseInt(hex.substring(0, 2), 16) || 207;
+                let g = parseInt(hex.substring(2, 4), 16) || 169;
+                let b = parseInt(hex.substring(4, 6), 16) || 96;
+                return `${r}, ${g}, ${b}`;
+            }
+            return '207, 169, 96';
+        }
+
+        // PORTFOLIO DATASET
+        const myImages = [
+            // --- NEW HEADERS ---
+            { name: "Ryan", file: "REAL-FINALS-FINALS-Baam-(tower-of-god).jpg", category: "New Headers" },
+            { name: "DvTM", file: "(Style 2) DvTm Header.png v2.jpg", category: "New Headers" },
+            { name: "Moody", file: "FINALS-Itachi-Uchiha.jpg", category: "New Headers" },
+            { name: "Scriptore", file: "REAL-FINAL-DONE-SHIT---Scriptore-header.jpg", category: "New Headers" },
+
+            // --- ARCHIVE (Headers & Banners) ---
+            { name: "Shinra", file: "header1.jpg", category: "Headers & Banners" },
+            { name: "Aizen", file: "header2.jpg", category: "Headers & Banners" },
+            { name: "Toji", file: "header3.jpg", category: "Headers & Banners" },
+            { name: "Arthur", file: "header4.jpg", category: "Headers & Banners" },
+            { name: "Ado", file: "header7.jpg", category: "Headers & Banners" }
+        ];
+
+        let activeFilter = 'all';
+        let currentImageIndex = 0;
+
         document.addEventListener("DOMContentLoaded", () => {
-            
+            updateAudioStateUI();
+
+            if (sessionStorage.getItem('siteEntered') === 'true') {
+                window.siteEntered = true;
+                const intro = document.getElementById('intro-screen');
+                const main = document.getElementById('main-content');
+                const nav = document.getElementById('navbar');
+                if (intro) intro.style.display = 'none';
+                if (main) main.classList.add('visible');
+                if (nav) nav.classList.add('nav-visible');
+                
+                ['h-tag', 'h-title', 'h-desc'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.classList.add('animate');
+                });
+            }
+
             try {
-                // Activate the custom cursor safely now that JS is running
                 document.body.classList.add('hide-cursor');
                 const cursorDot = document.getElementById('cursorDot');
                 const cursorOutline = document.getElementById('cursorOutline');
@@ -327,13 +615,11 @@
                     cursorDot.style.display = 'block';
                     cursorOutline.style.display = 'block';
                     
-                    let mouseX = window.innerWidth / 2;
-                    let mouseY = window.innerHeight / 2;
+                    let mouseX = window.innerWidth / 2, mouseY = window.innerHeight / 2;
                     let outX = mouseX, outY = mouseY;
 
                     window.addEventListener('mousemove', (e) => {
-                        mouseX = e.clientX;
-                        mouseY = e.clientY;
+                        mouseX = e.clientX; mouseY = e.clientY;
                         cursorDot.style.transform = `translate3d(calc(${mouseX}px - 50%), calc(${mouseY}px - 50%), 0)`;
                     });
 
@@ -346,71 +632,8 @@
                     requestAnimationFrame(renderCursorRing);
                 }
 
-                // Grid Generation
-                const myImages = [
-                    { name: "Shinra", file: "header1.jpg" },
-                    { name: "Aizen", file: "header2.jpg" },
-                    { name: "Toji", file: "header3.jpg" },
-                    { name: "Arthur", file: "header4.jpg" },
-                    { name: "02", file: "header5.jpg" },
-                    { name: "Arima", file: "header6.jpg" },
-                    { name: "Ado", file: "header7.jpg" },
-                    { name: "The King In Yellow", file: "header8.jpg" }
-                    
-                ];
+                renderGrid();
 
-                const grid = document.getElementById('portfolioGrid');
-                if (grid) {
-                    grid.innerHTML = myImages.map((img, index) => `
-                        <div class="reveal" style="transition-delay: ${index * 0.05}s">
-                            <div class="item hover-target" onclick="openImg('${img.file}')">
-                                <img src="${img.file}" onerror="this.src='https://via.placeholder.com/600x400?text=Image+Not+Found'">
-                                <div class="info">
-                                    <p>Header / Design</p>
-                                    <h3>${img.name}</h3>
-                                </div>
-                            </div>
-                        </div>
-                    `).join('');
-                }
-
-                // 3D Tilt
-                let tiltTicking = false;
-                document.querySelectorAll('.item').forEach(item => {
-                    item.addEventListener('mousemove', e => {
-                        if (!tiltTicking) {
-                            requestAnimationFrame(() => {
-                                let rect = item.getBoundingClientRect();
-                                let x = e.clientX - rect.left;
-                                let y = e.clientY - rect.top;
-                                let rotateX = ((y - rect.height / 2) / (rect.height / 2)) * -4; 
-                                let rotateY = ((x - rect.width / 2) / (rect.width / 2)) * 4;  
-                                item.style.transform = `perspective(1000px) scale(1.02) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
-                                tiltTicking = false;
-                            });
-                            tiltTicking = true;
-                        }
-                    });
-                    item.addEventListener('mouseleave', () => {
-                        item.style.transform = `perspective(1000px) scale(1) rotateX(0deg) rotateY(0deg)`;
-                    });
-                });
-
-                // Magnetic Buttons
-                document.querySelectorAll('.magnetic-btn').forEach(btn => {
-                    btn.addEventListener('mousemove', function(e) {
-                        const position = btn.getBoundingClientRect();
-                        const x = e.clientX - position.left - position.width / 2;
-                        const y = e.clientY - position.top - position.height / 2;
-                        btn.style.transform = `translate(${x * 0.3}px, ${y * 0.3}px)`;
-                    });
-                    btn.addEventListener('mouseleave', function() {
-                        btn.style.transform = 'translate(0px, 0px)';
-                    });
-                });
-
-                // Scroll Audio & Observer
-                const scrollSfx = document.getElementById('scrollSfx');
                 let lastScrollTop = 0;
                 let tickAllowed = true;
                 
@@ -419,7 +642,7 @@
                     let st = window.pageYOffset || document.documentElement.scrollTop;
                     if (Math.abs(st - lastScrollTop) > 150) { 
                         if (tickAllowed) {
-                            try { if(scrollSfx) { scrollSfx.currentTime = 0; scrollSfx.volume = 0.03; scrollSfx.play().catch(e=>{}); } } catch(e){}
+                            safePlayAudio('scrollSfx', 0.03);
                             tickAllowed = false;
                             setTimeout(() => tickAllowed = true, 120); 
                             lastScrollTop = st;
@@ -434,17 +657,6 @@
                 }, { threshold: 0.1 });
                 document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 
-                // Hover audio triggers
-                const hoverSfx = document.getElementById('hoverSfx');
-                document.querySelectorAll('.hover-target').forEach(el => {
-                    el.addEventListener('mouseenter', () => {
-                        document.body.classList.add('cursor-hover');
-                        try { if(hoverSfx) { hoverSfx.currentTime = 0; hoverSfx.volume = 0.1; hoverSfx.play().catch(e=>{}); } } catch(e){}
-                    });
-                    el.addEventListener('mouseleave', () => document.body.classList.remove('cursor-hover'));
-                });
-
-                // Canvas Smoke
                 const canvas = document.getElementById('smokeCanvas');
                 if (canvas && window.innerWidth > 768) {
                     const ctx = canvas.getContext('2d');
@@ -470,7 +682,8 @@
                         draw() {
                             ctx.beginPath();
                             let gradient = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.size);
-                            gradient.addColorStop(0, `rgba(207, 169, 96, ${this.alpha})`);
+                            let dynamicRGB = getAccentRGB();
+                            gradient.addColorStop(0, `rgba(${dynamicRGB}, ${this.alpha})`);
                             gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
                             ctx.fillStyle = gradient;
                             ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
@@ -493,26 +706,104 @@
                     });
                 }
 
+                document.addEventListener('keydown', (e) => {
+                    const lightbox = document.getElementById('lightbox');
+                    if (!lightbox || !lightbox.classList.contains('show')) return;
+
+                    if (e.key === 'Escape') closeImg();
+                    if (e.key === 'ArrowLeft') navigateLightbox(-1);
+                    if (e.key === 'ArrowRight') navigateLightbox(1);
+                });
+
             } catch(error) {
                 console.error("Initialization error:", error);
             }
         });
 
-        // Global functions (Needs to be outside DOMContentLoaded to be called by onclick attributes)
+        function filterGrid(category, btnElement) {
+            activeFilter = category;
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            if (btnElement) btnElement.classList.add('active');
+            renderGrid();
+        }
+
+        function renderGrid() {
+            const grid = document.getElementById('portfolioGrid');
+            if (!grid) return;
+
+            const visibleImages = activeFilter === 'all' 
+                ? myImages 
+                : myImages.filter(img => img.category.toLowerCase() === activeFilter.toLowerCase());
+
+            grid.innerHTML = visibleImages.map((img) => {
+                const globalIndex = myImages.indexOf(img);
+                return `
+                    <div class="reveal active">
+                        <div class="item hover-target" onclick="openImg(${globalIndex})">
+                            <img src="${img.file}" alt="${img.name} ${img.category} Artwork" onerror="this.src='https://via.placeholder.com/600x400?text=Image+Not+Found'">
+                            <div class="info">
+                                <p>${img.category} / Design</p>
+                                <h3>${img.name}</h3>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            bindDynamicEvents();
+        }
+
+        function bindDynamicEvents() {
+            document.querySelectorAll('.item').forEach(item => {
+                item.addEventListener('mousemove', e => {
+                    let rect = item.getBoundingClientRect();
+                    let x = e.clientX - rect.left;
+                    let y = e.clientY - rect.top;
+                    
+                    item.style.setProperty('--mouse-x', `${x}px`);
+                    item.style.setProperty('--mouse-y', `${y}px`);
+
+                    let rotateX = ((y - rect.height / 2) / (rect.height / 2)) * -5; 
+                    let rotateY = ((x - rect.width / 2) / (rect.width / 2)) * 5;  
+                    item.style.transform = `perspective(1000px) scale(1.02) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+                });
+
+                item.addEventListener('mouseleave', () => {
+                    item.style.transform = `perspective(1000px) scale(1) rotateX(0deg) rotateY(0deg)`;
+                });
+            });
+
+            document.querySelectorAll('.magnetic-btn').forEach(btn => {
+                btn.addEventListener('mousemove', function(e) {
+                    const position = btn.getBoundingClientRect();
+                    const x = e.clientX - position.left - position.width / 2;
+                    const y = e.clientY - position.top - position.height / 2;
+                    btn.style.transform = `translate(${x * 0.3}px, ${y * 0.3}px)`;
+                });
+                btn.addEventListener('mouseleave', function() {
+                    btn.style.transform = 'translate(0px, 0px)';
+                });
+            });
+
+            document.querySelectorAll('.hover-target').forEach(el => {
+                el.addEventListener('mouseenter', () => {
+                    document.body.classList.add('cursor-hover');
+                    safePlayAudio('hoverSfx', 0.08);
+                });
+                el.addEventListener('mouseleave', () => document.body.classList.remove('cursor-hover'));
+            });
+        }
+
         window.siteEntered = false; 
-        
         function enterSite() {
             window.siteEntered = true;
+            sessionStorage.setItem('siteEntered', 'true');
+            
             const intro = document.getElementById('intro-screen');
             const main = document.getElementById('main-content');
             const nav = document.getElementById('navbar');
-            const impact = document.getElementById('impactSfx');
 
-            if(impact) {
-                impact.volume = 0.8;
-                impact.currentTime = 0;
-                impact.play().catch(e => console.log("Audio play failed.", e));
-            }
+            safePlayAudio('impactSfx', 0.8);
 
             if(intro) intro.classList.add('open');
             if(main) main.classList.add('visible');
@@ -526,20 +817,56 @@
             }, 1000);
         }
 
-        function openImg(src) {
-            const openSfx = document.getElementById('openSfx');
+        function openImg(index) {
+            currentImageIndex = index;
+            updateLightboxContent();
+            safePlayAudio('openSfx', 0.4);
             const lightbox = document.getElementById('lightbox');
-            try { if(openSfx) { openSfx.currentTime = 0; openSfx.volume = 0.5; openSfx.play().catch(e=>{}); } } catch(e){}
-            if(document.getElementById('lbImg')) document.getElementById('lbImg').src = src;
-            setTimeout(() => { if(lightbox) lightbox.classList.add('show'); }, 10);
+            if(lightbox) {
+                lightbox.style.display = 'flex';
+                setTimeout(() => lightbox.classList.add('show'), 10);
+            }
+        }
+
+        function updateLightboxContent() {
+            const imgData = myImages[currentImageIndex];
+            if(!imgData) return;
+
+            document.getElementById('lbImg').src = imgData.file;
+            document.getElementById('lbTitle').textContent = imgData.name;
+            document.getElementById('lbCategory').textContent = `${imgData.category} / Design`;
+            document.getElementById('lbCounter').textContent = `${currentImageIndex + 1} / ${myImages.length}`;
+        }
+
+        function navigateLightbox(direction, event) {
+            if(event) event.stopPropagation();
+            currentImageIndex = (currentImageIndex + direction + myImages.length) % myImages.length;
+            
+            const lbImg = document.getElementById('lbImg');
+            lbImg.style.opacity = '0';
+            lbImg.style.transform = 'scale(0.95)';
+            
+            setTimeout(() => {
+                updateLightboxContent();
+                lbImg.style.opacity = '1';
+                lbImg.style.transform = 'scale(1)';
+            }, 150);
+
+            safePlayAudio('scrollSfx', 0.05);
         }
 
         function closeImg() {
-            const closeSfx = document.getElementById('closeSfx');
             const lightbox = document.getElementById('lightbox');
             if (!lightbox || !lightbox.classList.contains('show')) return; 
-            try { if(closeSfx) { closeSfx.currentTime = 0; closeSfx.volume = 0.4; closeSfx.play().catch(e=>{}); } } catch(e){}
+            safePlayAudio('closeSfx', 0.4);
             lightbox.classList.remove('show');
+            setTimeout(() => lightbox.style.display = 'none', 400);
+        }
+
+        function handleLightboxClick(e) {
+            if (e.target.id === 'lightbox') {
+                closeImg();
+            }
         }
     </script>
 </body>
